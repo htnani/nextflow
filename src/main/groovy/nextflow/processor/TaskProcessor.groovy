@@ -19,15 +19,9 @@
  */
 package nextflow.processor
 
-import static nextflow.processor.ErrorStrategy.FINISH
-import static nextflow.processor.ErrorStrategy.IGNORE
-import static nextflow.processor.ErrorStrategy.RETRY
-import static nextflow.processor.ErrorStrategy.TERMINATE
-
 import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicIntegerArray
@@ -91,6 +85,10 @@ import nextflow.util.ArrayBag
 import nextflow.util.BlankSeparatedList
 import nextflow.util.CacheHelper
 import nextflow.util.CollectionHelper
+import static nextflow.processor.ErrorStrategy.FINISH
+import static nextflow.processor.ErrorStrategy.IGNORE
+import static nextflow.processor.ErrorStrategy.RETRY
+import static nextflow.processor.ErrorStrategy.TERMINATE
 /**
  * Implement nextflow process execution logic
  *
@@ -1152,6 +1150,9 @@ class TaskProcessor {
         }
     }
 
+    private String getErrMessage( Throwable e ) {
+        e instanceof NoSuchFileException ? "No such file: $e.message" : e.message
+    }
 
     private String formatErrorCause( Throwable error ) {
 
@@ -1160,9 +1161,9 @@ class TaskProcessor {
 
         def message
         if( error instanceof ShowOnlyExceptionMessage || !error.cause )
-            message = error.getMessage()
+            message = getErrMessage(error)
         else
-            message = error.cause.getMessage()
+            message = getErrMessage(error.cause)
 
         if( !message )
             message = error.toString()
@@ -1580,12 +1581,12 @@ class TaskProcessor {
         assert items != null
 
         if( items.size() == 1 ) {
-            return Paths.get(items[0].stageName)
+            return new TaskPath(items[0])
         }
 
         def result = new ArrayList(items.size())
         for( int i=0; i<items.size(); i++ ) {
-            result.add( Paths.get(items[i].stageName) )
+            result.add( new TaskPath(items[i]) )
         }
         return new BlankSeparatedList(result)
     }
