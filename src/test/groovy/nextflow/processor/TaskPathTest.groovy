@@ -116,8 +116,6 @@ class TaskPathTest extends Specification {
 
         !t1.equals(t3)
 
-        t1.equals(p1)
-        t3.equals(p2)
     }
 
     def 'should return size zero for non-existing file' () {
@@ -147,7 +145,6 @@ class TaskPathTest extends Specification {
         folder.deleteDir()
 
     }
-
 
 
     def 'should serialised task path' () {
